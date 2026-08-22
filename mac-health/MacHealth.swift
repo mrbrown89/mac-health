@@ -47,23 +47,28 @@ struct MacHealth: ParsableCommand {
         print("Architecture: \(device.architecture)")
 
         if json {
-            printJSON(device)
-        }
-    }
-
-    private func printJSON(_ device: DeviceInfo) {
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-
-        do {
-            let jsonData = try encoder.encode(device)
+            let jsonData = try encodeJSON(device)
 
             if let jsonString = String(data: jsonData, encoding: .utf8) {
                 print()
                 print(jsonString)
             }
-        } catch {
-            print("Failed to encode device information: \(error)")
+
+            if let output {
+                let outputURL = URL(fileURLWithPath: output)
+
+                try jsonData.write(to: outputURL)
+
+                print()
+                print("JSON written to: \(outputURL.path)")
+            }
         }
+    }
+
+    private func encodeJSON(_ device: DeviceInfo) throws -> Data {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+
+        return try encoder.encode(device)
     }
 }
