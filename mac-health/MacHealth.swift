@@ -33,6 +33,12 @@ struct MacHealth: ParsableCommand {
         help: "Show storage health information only."
     )
     var storage = false
+    
+    @Flag(
+        name: [.short, .long],
+        help: "Show battery and power information only."
+    )
+    var battery = false
 
     mutating func run() throws {
         let deviceService = DeviceService()
@@ -40,17 +46,23 @@ struct MacHealth: ParsableCommand {
         let storageService = StorageService()
         let storageInfo = storageService.getStorageInfo()
         let renderer = TerminalRenderer()
+        let batteryService = BatteryService()
+        let batteryInfo = batteryService.getBatteryInfo()
         
         let report = HealthReport(
             device: device,
-            storage: storageInfo
+            storage: storageInfo,
+            battery: batteryInfo
         )
         
         if storage {
             printStorage(storageInfo, renderer: renderer)
+        } else if battery {
+            printBattery(batteryInfo, renderer: renderer)
         } else {
             printDevice(device)
             printStorage(storageInfo, renderer: renderer)
+            printBattery(batteryInfo, renderer: renderer)
         }
 
         if json {
@@ -123,6 +135,49 @@ struct MacHealth: ParsableCommand {
         ByteCountFormatter.string(
             fromByteCount: bytes,
             countStyle: .decimal
+        )
+    }
+}
+
+private func printBattery(
+    _ batteryInfo: BatteryInfo?,
+    renderer: TerminalRenderer
+) {
+    print()
+    print("Battery & Power")
+    print("----------------------------------------")
+
+    guard let batteryInfo else {
+        print("Battery: Not Present")
+        return
+    }
+
+    if let chargePercentage = batteryInfo.chargePercentage {
+        print("Charge: \(chargePercentage)%")
+    }
+
+    if let powerSource = batteryInfo.powerSource {
+        print("Power Source: \(powerSource)")
+    }
+
+    if let isCharging = batteryInfo.isCharging {
+        print("Charging: \(isCharging ? "Yes" : "No")")
+    }
+
+    if let maximumCapacity = batteryInfo.maximumCapacityPercentage {
+        print("Maximum Capacity: \(maximumCapacity)%")
+    }
+
+    if let cycleCount = batteryInfo.cycleCount {
+        print("Cycle Count: \(cycleCount)")
+    }
+
+    if let status = batteryInfo.status,
+       let maximumCapacity = batteryInfo.maximumCapacityPercentage {
+
+        renderer.status(
+            status,
+            message: "Battery Health: \(maximumCapacity)%"
         )
     }
 }
