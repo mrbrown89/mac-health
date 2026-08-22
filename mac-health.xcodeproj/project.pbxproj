@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		C95E7D8E3039F832000CFBA2 /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = C95E7D8D3039F832000CFBA2 /* ArgumentParser */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXCopyFilesBuildPhase section */
 		C95E7D693039C763000CFBA2 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -41,6 +45,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C95E7D8E3039F832000CFBA2 /* ArgumentParser in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -92,6 +97,7 @@
 			);
 			name = "mac-health";
 			packageProductDependencies = (
+				C95E7D8D3039F832000CFBA2 /* ArgumentParser */,
 			);
 			productName = "mac-health";
 			productReference = C95E7D6B3039C763000CFBA2 /* mac-health */;
@@ -146,6 +152,9 @@
 			);
 			mainGroup = C95E7D623039C763000CFBA2;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				C95E7D8C3039F832000CFBA2 /* XCRemoteSwiftPackageReference "swift-argument-parser" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C95E7D6C3039C763000CFBA2 /* Products */;
 			projectDirPath = "";
@@ -398,6 +407,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		C95E7D8C3039F832000CFBA2 /* XCRemoteSwiftPackageReference "swift-argument-parser" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-argument-parser.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.8.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		C95E7D8D3039F832000CFBA2 /* ArgumentParser */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C95E7D8C3039F832000CFBA2 /* XCRemoteSwiftPackageReference "swift-argument-parser" */;
+			productName = ArgumentParser;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = C95E7D633039C763000CFBA2 /* Project object */;
 }
