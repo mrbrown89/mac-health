@@ -11,4 +11,8 @@ struct DeviceInfo: Codable {
     let hostName: String
     let macOSVersion: String
     let architecture: String
+    let serialNumber: String?
+    let modelName: String?
+    let modelIdentifier: String?
+    let chip: String?
 }
