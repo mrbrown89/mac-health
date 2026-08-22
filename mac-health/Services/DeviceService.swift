@@ -7,7 +7,9 @@
 
 import Foundation
 
+// Collects general device information from macOS.
 struct DeviceService {
+    // Returns a snapshot of the current Mac's device information.
     func getDeviceInfo() -> DeviceInfo {
         let processInfo = ProcessInfo.processInfo
 
