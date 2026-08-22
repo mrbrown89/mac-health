@@ -27,24 +27,26 @@ struct MacHealth: ParsableCommand {
         help: "Write JSON output to a file."
     )
     var output: String?
+    
+    @Flag(
+        name: [.short, .long],
+        help: "Show storage health information only."
+    )
+    var storage = false
 
     mutating func run() throws {
         let deviceService = DeviceService()
         let device = deviceService.getDeviceInfo()
-
-        print("mac-health")
-        print("==========")
-        print()
-        print("Device")
-        print("----------------------------------------")
-        print("Computer Name: \(device.computerName)")
-        print("Host Name: \(device.hostName)")
-        print("Serial Number: \(device.serialNumber ?? "Unknown")")
-        print("Model Name: \(device.modelName ?? "Unknown")")
-        print("Model Identifier: \(device.modelIdentifier ?? "Unknown")")
-        print("Chip: \(device.chip ?? "Unknown")")
-        print("macOS: \(device.macOSVersion)")
-        print("Architecture: \(device.architecture)")
+        let storageService = StorageService()
+        let storageInfo = storageService.getStorageInfo()
+        let renderer = TerminalRenderer()
+        
+        if storage {
+            printStorage(storageInfo, renderer: renderer)
+        } else {
+            printDevice(device)
+            printStorage(storageInfo, renderer: renderer)
+        }
 
         if json {
             let jsonData = try encodeJSON(device)
@@ -71,4 +73,52 @@ struct MacHealth: ParsableCommand {
 
         return try encoder.encode(device)
     }
+    
+    private func printDevice(_ device: DeviceInfo) {
+        print("mac-health")
+        print("==========")
+        print()
+        print("Device")
+        print("----------------------------------------")
+        print("Computer Name: \(device.computerName)")
+        print("Host Name: \(device.hostName)")
+        print("Serial Number: \(device.serialNumber ?? "Unknown")")
+        print("Model Name: \(device.modelName ?? "Unknown")")
+        print("Model Identifier: \(device.modelIdentifier ?? "Unknown")")
+        print("Chip: \(device.chip ?? "Unknown")")
+        print("macOS: \(device.macOSVersion)")
+        print("Architecture: \(device.architecture)")
+    }
+
+    private func printStorage(
+        _ storageInfo: StorageInfo?,
+        renderer: TerminalRenderer
+    ) {
+        print()
+        print("Storage")
+        print("----------------------------------------")
+
+        if let storageInfo {
+            print("Total Space: \(formatBytes(storageInfo.totalBytes))")
+            print("Available Space: \(formatBytes(storageInfo.availableBytes))")
+
+            renderer.status(
+                storageInfo.status,
+                message: String(
+                    format: "Disk Usage: %.1f%%",
+                    storageInfo.usedPercentage
+                )
+            )
+        } else {
+            print("Storage information unavailable")
+        }
+    }
+
+    private func formatBytes(_ bytes: Int64) -> String {
+        ByteCountFormatter.string(
+            fromByteCount: bytes,
+            countStyle: .decimal
+        )
+    }
 }
+
