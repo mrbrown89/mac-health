@@ -41,6 +41,11 @@ struct MacHealth: ParsableCommand {
         let storageInfo = storageService.getStorageInfo()
         let renderer = TerminalRenderer()
         
+        let report = HealthReport(
+            device: device,
+            storage: storageInfo
+        )
+        
         if storage {
             printStorage(storageInfo, renderer: renderer)
         } else {
@@ -49,7 +54,7 @@ struct MacHealth: ParsableCommand {
         }
 
         if json {
-            let jsonData = try encodeJSON(device)
+            let jsonData = try encodeJSON(report)
 
             if let jsonString = String(data: jsonData, encoding: .utf8) {
                 print()
@@ -67,11 +72,11 @@ struct MacHealth: ParsableCommand {
         }
     }
 
-    private func encodeJSON(_ device: DeviceInfo) throws -> Data {
+    private func encodeJSON(_ report: HealthReport) throws -> Data {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
 
-        return try encoder.encode(device)
+        return try encoder.encode(report)
     }
     
     private func printDevice(_ device: DeviceInfo) {
