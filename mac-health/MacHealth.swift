@@ -1,5 +1,5 @@
 //
-//  main.swift
+//  MacHealth.swift
 //  mac-health
 //
 //  Created by Matt on 22/08/2026.
@@ -17,23 +17,29 @@ struct MacHealth: ParsableCommand {
     )
 
     @Flag(
+        name: [.short, .long],
+        help: "Show device information only."
+    )
+    var device = false
+
+    @Flag(
         name: .long,
-        help: "Output to JSON"
+        help: "Output to JSON."
     )
     var json = false
-    
+
     @Option(
         name: [.short, .long],
         help: "Write JSON output to a file."
     )
     var output: String?
-    
+
     @Flag(
         name: [.short, .long],
         help: "Show storage health information only."
     )
     var storage = false
-    
+
     @Flag(
         name: [.short, .long],
         help: "Show battery and power information only."
@@ -42,63 +48,90 @@ struct MacHealth: ParsableCommand {
 
     mutating func run() throws {
         let deviceService = DeviceService()
-        let device = deviceService.getDeviceInfo()
+        let deviceInfo = deviceService.getDeviceInfo()
         let storageService = StorageService()
         let storageInfo = storageService.getStorageInfo()
-        let renderer = TerminalRenderer()
         let batteryService = BatteryService()
         let batteryInfo = batteryService.getBatteryInfo()
-        
         let report = HealthReport(
-            device: device,
+            device: deviceInfo,
             storage: storageInfo,
             battery: batteryInfo
         )
-        
-        if storage {
-            printStorage(storageInfo, renderer: renderer)
-        } else if battery {
-            printBattery(batteryInfo, renderer: renderer)
-        } else {
-            printDevice(device)
-            printStorage(storageInfo, renderer: renderer)
-            printBattery(batteryInfo, renderer: renderer)
-        }
+
+        let renderer = TerminalRenderer()
 
         if json {
             let jsonData = try encodeJSON(report)
 
-            if let jsonString = String(data: jsonData, encoding: .utf8) {
-                print()
+            if let jsonString = String(
+                data: jsonData,
+                encoding: .utf8
+            ) {
                 print(jsonString)
             }
 
             if let output {
-                let outputURL = URL(fileURLWithPath: output)
+                let outputURL = URL(
+                    fileURLWithPath: output
+                )
 
                 try jsonData.write(to: outputURL)
-
-                print()
-                print("JSON written to: \(outputURL.path)")
             }
+
+            return
+        }
+
+        if device {
+            printDevice(deviceInfo)
+        } else if storage {
+            printStorage(
+                storageInfo,
+                renderer: renderer
+            )
+        } else if battery {
+            printBattery(
+                batteryInfo,
+                renderer: renderer
+            )
+        } else {
+            printDevice(deviceInfo)
+
+            printStorage(
+                storageInfo,
+                renderer: renderer
+            )
+
+            printBattery(
+                batteryInfo,
+                renderer: renderer
+            )
         }
     }
 
-    private func encodeJSON(_ report: HealthReport) throws -> Data {
+    private func encodeJSON(
+        _ report: HealthReport
+    ) throws -> Data {
         let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        encoder.outputFormatting = [
+            .prettyPrinted
+        ]
 
         return try encoder.encode(report)
     }
-    
-    private func formatMemory(_ bytes: UInt64) -> String {
+
+    private func formatMemory(
+        _ bytes: UInt64
+    ) -> String {
         ByteCountFormatter.string(
             fromByteCount: Int64(bytes),
             countStyle: .binary
         )
     }
-    
-    private func formatUptime(_ seconds: TimeInterval) -> String {
+
+    private func formatUptime(
+        _ seconds: TimeInterval
+    ) -> String {
         let totalMinutes = Int(seconds) / 60
         let totalHours = totalMinutes / 60
         let days = totalHours / 24
@@ -116,8 +149,10 @@ struct MacHealth: ParsableCommand {
 
         return "\(minutes) minutes"
     }
-    
-    private func printDevice(_ device: DeviceInfo) {
+
+    private func printDevice(
+        _ device: DeviceInfo
+    ) {
         print("mac-health")
         print("==========")
         print()
@@ -130,12 +165,17 @@ struct MacHealth: ParsableCommand {
         print("Model Identifier: \(device.modelIdentifier ?? "Unknown")")
         print("Chip: \(device.chip ?? "Unknown")")
         print("CPU Cores: \(device.cpuCoreCount)")
-        print("GPU Cores: \(device.gpuCoreCount.map(String.init) ?? "Unknown")")
+        print(
+            "GPU Cores: \(device.gpuCoreCount.map(String.init) ?? "Unknown")"
+        )
         print("Memory: \(formatMemory(device.memoryBytes))")
         print("macOS: \(device.macOSVersion)")
         print("Architecture: \(device.architecture)")
-        print("Uptime: \(formatUptime(device.uptimeSeconds))")
+        print(
+            "Uptime: \(formatUptime(device.uptimeSeconds))"
+        )
     }
+
     private func printStorage(
         _ storageInfo: StorageInfo?,
         renderer: TerminalRenderer
@@ -145,8 +185,13 @@ struct MacHealth: ParsableCommand {
         print("----------------------------------------")
 
         if let storageInfo {
-            print("Total Space: \(formatBytes(storageInfo.totalBytes))")
-            print("Available Space: \(formatBytes(storageInfo.availableBytes))")
+            print(
+                "Total Space: \(formatBytes(storageInfo.totalBytes))"
+            )
+
+            print(
+                "Available Space: \(formatBytes(storageInfo.availableBytes))"
+            )
 
             renderer.status(
                 storageInfo.status,
@@ -160,54 +205,61 @@ struct MacHealth: ParsableCommand {
         }
     }
 
-    private func formatBytes(_ bytes: Int64) -> String {
+    private func printBattery(
+        _ batteryInfo: BatteryInfo?,
+        renderer: TerminalRenderer
+    ) {
+        print()
+        print("Battery & Power")
+        print("----------------------------------------")
+
+        guard let batteryInfo else {
+            print("Battery: Not Present")
+            return
+        }
+
+        if let chargePercentage = batteryInfo.chargePercentage {
+            print("Charge: \(chargePercentage)%")
+        }
+
+        if let powerSource = batteryInfo.powerSource {
+            print("Power Source: \(powerSource)")
+        }
+
+        if let isCharging = batteryInfo.isCharging {
+            print(
+                "Charging: \(isCharging ? "Yes" : "No")"
+            )
+        }
+
+        if let maximumCapacity =
+            batteryInfo.maximumCapacityPercentage {
+            print(
+                "Maximum Capacity: \(maximumCapacity)%"
+            )
+        }
+
+        if let cycleCount = batteryInfo.cycleCount {
+            print("Cycle Count: \(cycleCount)")
+        }
+
+        if let status = batteryInfo.status,
+           let maximumCapacity =
+            batteryInfo.maximumCapacityPercentage {
+
+            renderer.status(
+                status,
+                message: "Battery Health: \(maximumCapacity)%"
+            )
+        }
+    }
+
+    private func formatBytes(
+        _ bytes: Int64
+    ) -> String {
         ByteCountFormatter.string(
             fromByteCount: bytes,
             countStyle: .decimal
         )
     }
 }
-
-private func printBattery(
-    _ batteryInfo: BatteryInfo?,
-    renderer: TerminalRenderer
-) {
-    print()
-    print("Battery & Power")
-    print("----------------------------------------")
-
-    guard let batteryInfo else {
-        print("Battery: Not Present")
-        return
-    }
-
-    if let chargePercentage = batteryInfo.chargePercentage {
-        print("Charge: \(chargePercentage)%")
-    }
-
-    if let powerSource = batteryInfo.powerSource {
-        print("Power Source: \(powerSource)")
-    }
-
-    if let isCharging = batteryInfo.isCharging {
-        print("Charging: \(isCharging ? "Yes" : "No")")
-    }
-
-    if let maximumCapacity = batteryInfo.maximumCapacityPercentage {
-        print("Maximum Capacity: \(maximumCapacity)%")
-    }
-
-    if let cycleCount = batteryInfo.cycleCount {
-        print("Cycle Count: \(cycleCount)")
-    }
-
-    if let status = batteryInfo.status,
-       let maximumCapacity = batteryInfo.maximumCapacityPercentage {
-
-        renderer.status(
-            status,
-            message: "Battery Health: \(maximumCapacity)%"
-        )
-    }
-}
-
