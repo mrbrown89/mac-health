@@ -11,5 +11,6 @@ import Foundation
 struct HealthReport: Codable {
     let device: DeviceInfo
     let storage: StorageInfo?
+    let memory: MemoryInfo
     let battery: BatteryInfo?
 }

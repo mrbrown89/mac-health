@@ -33,6 +33,12 @@ struct MacHealth: ParsableCommand {
         help: "Write JSON output to a file."
     )
     var output: String?
+    
+    @Flag(
+        name: [.short, .long],
+        help: "Show memory health information only."
+    )
+    var memory = false
 
     @Flag(
         name: [.short, .long],
@@ -51,11 +57,14 @@ struct MacHealth: ParsableCommand {
         let deviceInfo = deviceService.getDeviceInfo()
         let storageService = StorageService()
         let storageInfo = storageService.getStorageInfo()
+        let memoryService = MemoryService()
+        let memoryInfo = memoryService.getMemoryInfo()
         let batteryService = BatteryService()
         let batteryInfo = batteryService.getBatteryInfo()
         let report = HealthReport(
             device: deviceInfo,
             storage: storageInfo,
+            memory: memoryInfo,
             battery: batteryInfo
         )
 
@@ -89,6 +98,11 @@ struct MacHealth: ParsableCommand {
                 storageInfo,
                 renderer: renderer
             )
+        } else if memory {
+            printMemory(
+                memoryInfo,
+                renderer: renderer
+            )
         } else if battery {
             printBattery(
                 batteryInfo,
@@ -99,6 +113,11 @@ struct MacHealth: ParsableCommand {
 
             printStorage(
                 storageInfo,
+                renderer: renderer
+            )
+            
+            printMemory(
+                memoryInfo,
                 renderer: renderer
             )
 
@@ -261,5 +280,29 @@ struct MacHealth: ParsableCommand {
             fromByteCount: bytes,
             countStyle: .decimal
         )
+    }
+    
+    private func printMemory(
+        _ memoryInfo: MemoryInfo,
+        renderer: TerminalRenderer
+    ) {
+        print()
+        print("Memory")
+        print("----------------------------------------")
+
+        if let pressurePercentage = memoryInfo.pressurePercentage {
+            renderer.status(
+                memoryInfo.status,
+                message: String(
+                    format: "Memory Pressure: %.1f%%",
+                    pressurePercentage
+                )
+            )
+        } else {
+            renderer.status(
+                .info,
+                message: "Memory pressure unavailable"
+            )
+        }
     }
 }
