@@ -59,7 +59,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-b"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-s"

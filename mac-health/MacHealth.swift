@@ -91,6 +91,32 @@ struct MacHealth: ParsableCommand {
         return try encoder.encode(report)
     }
     
+    private func formatMemory(_ bytes: UInt64) -> String {
+        ByteCountFormatter.string(
+            fromByteCount: Int64(bytes),
+            countStyle: .binary
+        )
+    }
+    
+    private func formatUptime(_ seconds: TimeInterval) -> String {
+        let totalMinutes = Int(seconds) / 60
+        let totalHours = totalMinutes / 60
+        let days = totalHours / 24
+
+        let hours = totalHours % 24
+        let minutes = totalMinutes % 60
+
+        if days > 0 {
+            return "\(days) days, \(hours) hours"
+        }
+
+        if totalHours > 0 {
+            return "\(totalHours) hours, \(minutes) minutes"
+        }
+
+        return "\(minutes) minutes"
+    }
+    
     private func printDevice(_ device: DeviceInfo) {
         print("mac-health")
         print("==========")
@@ -103,10 +129,13 @@ struct MacHealth: ParsableCommand {
         print("Model Name: \(device.modelName ?? "Unknown")")
         print("Model Identifier: \(device.modelIdentifier ?? "Unknown")")
         print("Chip: \(device.chip ?? "Unknown")")
+        print("CPU Cores: \(device.cpuCoreCount)")
+        print("GPU Cores: \(device.gpuCoreCount.map(String.init) ?? "Unknown")")
+        print("Memory: \(formatMemory(device.memoryBytes))")
         print("macOS: \(device.macOSVersion)")
         print("Architecture: \(device.architecture)")
+        print("Uptime: \(formatUptime(device.uptimeSeconds))")
     }
-
     private func printStorage(
         _ storageInfo: StorageInfo?,
         renderer: TerminalRenderer
