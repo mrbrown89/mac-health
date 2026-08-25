@@ -13,4 +13,5 @@ struct HealthReport: Codable {
     let storage: StorageInfo?
     let memory: MemoryInfo
     let battery: BatteryInfo?
+    let security: SecurityInfo
 }

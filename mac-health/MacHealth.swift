@@ -33,7 +33,7 @@ struct MacHealth: ParsableCommand {
         help: "Write JSON output to a file."
     )
     var output: String?
-    
+
     @Flag(
         name: [.short, .long],
         help: "Show memory health information only."
@@ -52,6 +52,12 @@ struct MacHealth: ParsableCommand {
     )
     var battery = false
 
+    @Flag(
+        name: .long,
+        help: "Show security information only."
+    )
+    var security = false
+
     mutating func run() throws {
         let deviceService = DeviceService()
         let deviceInfo = deviceService.getDeviceInfo()
@@ -61,11 +67,14 @@ struct MacHealth: ParsableCommand {
         let memoryInfo = memoryService.getMemoryInfo()
         let batteryService = BatteryService()
         let batteryInfo = batteryService.getBatteryInfo()
+        let securityService = SecurityService()
+        let securityInfo = securityService.getSecurityInfo()
         let report = HealthReport(
             device: deviceInfo,
             storage: storageInfo,
             memory: memoryInfo,
-            battery: batteryInfo
+            battery: batteryInfo,
+            security: securityInfo
         )
 
         let renderer = TerminalRenderer()
@@ -93,21 +102,31 @@ struct MacHealth: ParsableCommand {
 
         if device {
             printDevice(deviceInfo)
+
         } else if storage {
             printStorage(
                 storageInfo,
                 renderer: renderer
             )
+
         } else if memory {
             printMemory(
                 memoryInfo,
                 renderer: renderer
             )
+
         } else if battery {
             printBattery(
                 batteryInfo,
                 renderer: renderer
             )
+
+        } else if security {
+            printSecurity(
+                securityInfo,
+                renderer: renderer
+            )
+
         } else {
             printDevice(deviceInfo)
 
@@ -115,7 +134,7 @@ struct MacHealth: ParsableCommand {
                 storageInfo,
                 renderer: renderer
             )
-            
+
             printMemory(
                 memoryInfo,
                 renderer: renderer
@@ -123,6 +142,11 @@ struct MacHealth: ParsableCommand {
 
             printBattery(
                 batteryInfo,
+                renderer: renderer
+            )
+
+            printSecurity(
+                securityInfo,
                 renderer: renderer
             )
         }
@@ -132,6 +156,7 @@ struct MacHealth: ParsableCommand {
         _ report: HealthReport
     ) throws -> Data {
         let encoder = JSONEncoder()
+
         encoder.outputFormatting = [
             .prettyPrinted
         ]
@@ -224,6 +249,30 @@ struct MacHealth: ParsableCommand {
         }
     }
 
+    private func printMemory(
+        _ memoryInfo: MemoryInfo,
+        renderer: TerminalRenderer
+    ) {
+        print()
+        print("Memory")
+        print("----------------------------------------")
+
+        if let pressurePercentage = memoryInfo.pressurePercentage {
+            renderer.status(
+                memoryInfo.status,
+                message: String(
+                    format: "Memory Pressure: %.1f%%",
+                    pressurePercentage
+                )
+            )
+        } else {
+            renderer.status(
+                .info,
+                message: "Memory pressure unavailable"
+            )
+        }
+    }
+
     private func printBattery(
         _ batteryInfo: BatteryInfo?,
         renderer: TerminalRenderer
@@ -273,6 +322,84 @@ struct MacHealth: ParsableCommand {
         }
     }
 
+    private func printSecurity(
+        _ securityInfo: SecurityInfo,
+        renderer: TerminalRenderer
+    ) {
+        print()
+        print("Security")
+        print("----------------------------------------")
+
+        printBooleanSecurityCheck(
+            label: "FileVault",
+            value: securityInfo.fileVaultEnabled,
+            renderer: renderer
+        )
+
+        printBooleanSecurityCheck(
+            label: "SIP",
+            value: securityInfo.sipEnabled,
+            renderer: renderer
+        )
+
+        printBooleanSecurityCheck(
+            label: "Gatekeeper",
+            value: securityInfo.gatekeeperEnabled,
+            renderer: renderer
+        )
+
+        printBooleanSecurityCheck(
+            label: "Firewall",
+            value: securityInfo.firewallEnabled,
+            renderer: renderer
+        )
+
+        if let stealthMode = securityInfo.stealthModeEnabled {
+            renderer.status(
+                stealthMode ? .ok : .critical,
+                message:
+                    "Stealth Mode: \(stealthMode ? "Enabled" : "Disabled")"
+            )
+        } else {
+            renderer.status(
+                .info,
+                message: "Stealth Mode: Unknown"
+            )
+        }
+
+        if let xProtectVersion = securityInfo.xProtectVersion {
+            renderer.status(
+                .info,
+                message: "XProtect Version: \(xProtectVersion)"
+            )
+        } else {
+            renderer.status(
+                .info,
+                message: "XProtect Version: Unknown"
+            )
+        }
+    }
+
+    private func printBooleanSecurityCheck(
+        label: String,
+        value: Bool?,
+        renderer: TerminalRenderer
+    ) {
+        guard let value else {
+            renderer.status(
+                .info,
+                message: "\(label): Unknown"
+            )
+            return
+        }
+
+        renderer.status(
+            value ? .ok : .critical,
+            message:
+                "\(label): \(value ? "Enabled" : "Disabled")"
+        )
+    }
+
     private func formatBytes(
         _ bytes: Int64
     ) -> String {
@@ -280,29 +407,5 @@ struct MacHealth: ParsableCommand {
             fromByteCount: bytes,
             countStyle: .decimal
         )
-    }
-    
-    private func printMemory(
-        _ memoryInfo: MemoryInfo,
-        renderer: TerminalRenderer
-    ) {
-        print()
-        print("Memory")
-        print("----------------------------------------")
-
-        if let pressurePercentage = memoryInfo.pressurePercentage {
-            renderer.status(
-                memoryInfo.status,
-                message: String(
-                    format: "Memory Pressure: %.1f%%",
-                    pressurePercentage
-                )
-            )
-        } else {
-            renderer.status(
-                .info,
-                message: "Memory pressure unavailable"
-            )
-        }
     }
 }
