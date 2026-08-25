@@ -58,6 +58,12 @@ struct MacHealth: ParsableCommand {
     )
     var security = false
 
+    @Flag(
+        name: [.short, .long],
+        help: "Check for available macOS software updates."
+    )
+    var updates = false
+
     mutating func run() throws {
         let deviceService = DeviceService()
         let deviceInfo = deviceService.getDeviceInfo()
@@ -69,12 +75,16 @@ struct MacHealth: ParsableCommand {
         let batteryInfo = batteryService.getBatteryInfo()
         let securityService = SecurityService()
         let securityInfo = securityService.getSecurityInfo()
+        let softwareUpdateService = SoftwareUpdateService()
+        let softwareUpdateInfo = softwareUpdateService.getSoftwareUpdateInfo()
+
         let report = HealthReport(
             device: deviceInfo,
             storage: storageInfo,
             memory: memoryInfo,
             battery: batteryInfo,
-            security: securityInfo
+            security: securityInfo,
+            softwareUpdates: softwareUpdateInfo
         )
 
         let renderer = TerminalRenderer()
@@ -127,6 +137,12 @@ struct MacHealth: ParsableCommand {
                 renderer: renderer
             )
 
+        } else if updates {
+            printSoftwareUpdates(
+                softwareUpdateInfo,
+                renderer: renderer
+            )
+
         } else {
             printDevice(deviceInfo)
 
@@ -147,6 +163,11 @@ struct MacHealth: ParsableCommand {
 
             printSecurity(
                 securityInfo,
+                renderer: renderer
+            )
+            
+            printSoftwareUpdates(
+                softwareUpdateInfo,
                 renderer: renderer
             )
         }
@@ -376,6 +397,35 @@ struct MacHealth: ParsableCommand {
             renderer.status(
                 .info,
                 message: "XProtect Version: Unknown"
+            )
+        }
+    }
+
+    private func printSoftwareUpdates(
+        _ softwareUpdateInfo: SoftwareUpdateInfo,
+        renderer: TerminalRenderer
+    ) {
+        print()
+        print("Software Updates")
+        print("----------------------------------------")
+
+        if softwareUpdateInfo.updatesAvailable {
+            renderer.status(
+                softwareUpdateInfo.status,
+                message:
+                    "\(softwareUpdateInfo.updateCount) software update(s) available"
+            )
+
+            for updateName in softwareUpdateInfo.updateNames {
+                renderer.status(
+                    .info,
+                    message: updateName
+                )
+            }
+        } else {
+            renderer.status(
+                softwareUpdateInfo.status,
+                message: "No software updates available"
             )
         }
     }
