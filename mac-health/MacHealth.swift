@@ -493,7 +493,7 @@ struct MacHealth: ParsableCommand {
             if let hasFileVault = user.hasFileVault {
                 print("FileVault: \(hasFileVault ? "Yes" : "No")")
             } else {
-                print("FileVault: Unknown")
+                print("FileVault: Unknown - try running with sudo")
             }
             print("Logged In: \(user.isLoggedIn ? "Yes" : "No")")
             print()
