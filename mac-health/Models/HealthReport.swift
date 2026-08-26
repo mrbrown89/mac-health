@@ -15,4 +15,5 @@ struct HealthReport: Codable {
     let battery: BatteryInfo?
     let security: SecurityInfo
     let softwareUpdates: SoftwareUpdateInfo
+    let users: [UserInfo]
 }

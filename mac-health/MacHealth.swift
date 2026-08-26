@@ -63,6 +63,12 @@ struct MacHealth: ParsableCommand {
         help: "Check for available macOS software updates."
     )
     var updates = false
+    
+    @Flag(
+        name: .long,
+        help: "Show local user information only."
+    )
+    var users = false
 
     mutating func run() throws {
         let deviceService = DeviceService()
@@ -77,14 +83,17 @@ struct MacHealth: ParsableCommand {
         let securityInfo = securityService.getSecurityInfo()
         let softwareUpdateService = SoftwareUpdateService()
         let softwareUpdateInfo = softwareUpdateService.getSoftwareUpdateInfo()
-
+        let userService = UserService()
+        let userInfo = userService.getUsers()
+        
         let report = HealthReport(
             device: deviceInfo,
             storage: storageInfo,
             memory: memoryInfo,
             battery: batteryInfo,
             security: securityInfo,
-            softwareUpdates: softwareUpdateInfo
+            softwareUpdates: softwareUpdateInfo,
+            users: userInfo
         )
 
         let renderer = TerminalRenderer()
@@ -142,6 +151,9 @@ struct MacHealth: ParsableCommand {
                 softwareUpdateInfo,
                 renderer: renderer
             )
+            
+        } else if users {
+            printUsers(userInfo)
 
         } else {
             printDevice(deviceInfo)
@@ -170,6 +182,8 @@ struct MacHealth: ParsableCommand {
                 softwareUpdateInfo,
                 renderer: renderer
             )
+            
+            printUsers(userInfo)
         }
     }
 
@@ -457,5 +471,28 @@ struct MacHealth: ParsableCommand {
             fromByteCount: bytes,
             countStyle: .decimal
         )
+    }
+    
+    private func printUsers(
+        _ users: [UserInfo]
+    ) {
+        print()
+        print("Users")
+        print("----------------------------------------")
+
+        if users.isEmpty {
+            print("No local users found")
+            return
+        }
+
+        for user in users {
+            print("User: \(user.username)")
+            print("UID: \(user.uid)")
+            print("Home: \(user.homeDirectory ?? "Unknown")")
+            print("Admin: \(user.isAdmin ? "Yes" : "No")")
+            print("FileVault: \(user.hasFileVault ? "Yes" : "No")")
+            print("Logged In: \(user.isLoggedIn ? "Yes" : "No")")
+            print()
+        }
     }
 }
