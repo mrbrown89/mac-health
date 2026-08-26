@@ -490,7 +490,11 @@ struct MacHealth: ParsableCommand {
             print("UID: \(user.uid)")
             print("Home: \(user.homeDirectory ?? "Unknown")")
             print("Admin: \(user.isAdmin ? "Yes" : "No")")
-            print("FileVault: \(user.hasFileVault ? "Yes" : "No")")
+            if let hasFileVault = user.hasFileVault {
+                print("FileVault: \(hasFileVault ? "Yes" : "No")")
+            } else {
+                print("FileVault: Unknown")
+            }
             print("Logged In: \(user.isLoggedIn ? "Yes" : "No")")
             print()
         }

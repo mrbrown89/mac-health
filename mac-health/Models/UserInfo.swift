@@ -13,6 +13,6 @@ struct UserInfo: Codable {
     let uid: Int
     let homeDirectory: String?
     let isAdmin: Bool
-    let hasFileVault: Bool
+    let hasFileVault: Bool?
     let isLoggedIn: Bool
 }

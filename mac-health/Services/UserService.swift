@@ -62,7 +62,7 @@ struct UserService {
             )
 
             let hasFileVault =
-                fileVaultUsers.contains(username)
+                fileVaultUsers?.contains(username)
 
             let isLoggedIn =
                 username == loggedInUser
@@ -93,12 +93,12 @@ struct UserService {
         )
     }
 
-    private func getFileVaultUsers() -> Set<String> {
+    private func getFileVaultUsers() -> Set<String>? {
         guard let output = runCommand(
             executable: "/usr/bin/fdesetup",
             arguments: ["list"]
         ) else {
-            return []
+            return nil
         }
 
         var users = Set<String>()
