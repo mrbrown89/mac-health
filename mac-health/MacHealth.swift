@@ -13,7 +13,8 @@ struct MacHealth: ParsableCommand {
 
     static let configuration = CommandConfiguration(
         commandName: "mac-health",
-        abstract: "Run health checks against the local Mac."
+        abstract: "Run health checks against the local Mac.",
+        version: "0.1.0"
     )
 
     @Flag(
