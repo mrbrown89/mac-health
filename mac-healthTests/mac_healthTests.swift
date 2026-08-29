@@ -6,11 +6,14 @@
 //
 
 import Testing
+@testable import mac_health
 
 struct MacHealthTests {
 
     @Test
-    func basicTest() {
-        #expect(1 + 1 == 2)
+    func healthStatusEncodesCorrectly() throws {
+        let status = HealthStatus.ok
+
+        #expect(status == .ok)
     }
 }
