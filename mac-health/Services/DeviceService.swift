@@ -13,16 +13,29 @@ import IOKit
 struct DeviceService {
 
   private struct SystemProfilerResult: Decodable {
-    let SPHardwareDataType: [HardwareData]
-    let SPDisplaysDataType: [DisplayData]
+    let hardwareData: [HardwareData]
+    let displayData: [DisplayData]
+
+    enum CodingKeys: String, CodingKey {
+      case hardwareData = "SPHardwareDataType"
+      case displayData = "SPDisplaysDataType"
+    }
   }
 
   private struct HardwareData: Decodable {
-    let machine_name: String?
+    let machineName: String?
+
+    enum CodingKeys: String, CodingKey {
+      case machineName = "machine_name"
+    }
   }
 
   private struct DisplayData: Decodable {
-    let sppci_cores: String?
+    let sppciCores: String?
+
+    enum CodingKeys: String, CodingKey {
+      case sppciCores = "sppci_cores"
+    }
   }
 
   // Returns a snapshot of the current Mac's device information.
@@ -203,10 +216,10 @@ struct DeviceService {
       )
 
       let modelName =
-        profilerData.SPHardwareDataType.first?.machine_name
+        profilerData.hardwareData.first?.machineName
 
       let gpuCoreString =
-        profilerData.SPDisplaysDataType.first?.sppci_cores
+        profilerData.displayData.first?.sppciCores
 
       let gpuCoreCount =
         gpuCoreString.flatMap { Int($0) }
