@@ -23,6 +23,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		C93C61F830438C10007F180E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		C95E7D6B3039C763000CFBA2 /* mac-health */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "mac-health"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C95E7D853039DDE4000CFBA2 /* mac-healthTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "mac-healthTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -62,6 +63,7 @@
 		C95E7D623039C763000CFBA2 = {
 			isa = PBXGroup;
 			children = (
+				C93C61F830438C10007F180E /* README.md */,
 				C95E7D6D3039C763000CFBA2 /* mac-health */,
 				C95E7D863039DDE4000CFBA2 /* mac-healthTests */,
 				C95E7D6C3039C763000CFBA2 /* Products */,
