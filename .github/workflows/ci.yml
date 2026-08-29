@@ -1,0 +1,76 @@
+name: mac-health CI
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Lint Swift
+        run: |
+          swift format lint --recursive --strict mac-health
+
+  build:
+    name: Build
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build mac-health
+        run: |
+          xcodebuild \
+            -project mac-health.xcodeproj \
+            -scheme mac-health \
+            -configuration Release \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Upload mac-health binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: mac-health
+          path: build/Build/Products/Release/mac-health
+
+  smoke-test:
+    name: Smoke Test
+    runs-on: macos-latest
+    needs: build
+
+    steps:
+      - name: Download mac-health binary
+        uses: actions/download-artifact@v4
+        with:
+          name: mac-health
+          path: bin
+
+      - name: Make executable
+        run: chmod +x bin/mac-health
+
+      - name: Test version
+        run: bin/mac-health --version
+
+      - name: Test help
+        run: bin/mac-health --help
+
+      - name: Test device check
+        run: bin/mac-health --device
+
+      - name: Test memory check
+        run: bin/mac-health --memory
+
+      - name: Test storage check
+        run: bin/mac-health --storage
+
+      - name: Test JSON output
+        run: bin/mac-health --json
