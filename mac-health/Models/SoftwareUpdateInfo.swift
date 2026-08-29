@@ -9,8 +9,8 @@ import Foundation
 
 // Represents available macOS software updates.
 struct SoftwareUpdateInfo: Codable {
-    let updatesAvailable: Bool
-    let updateCount: Int
-    let updateNames: [String]
-    let status: HealthStatus
+  let updatesAvailable: Bool
+  let updateCount: Int
+  let updateNames: [String]
+  let status: HealthStatus
 }

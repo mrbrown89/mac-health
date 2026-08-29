@@ -9,6 +9,6 @@ import Foundation
 
 // Represents the current memory health of the Mac.
 struct MemoryInfo: Codable {
-    let pressurePercentage: Double?
-    let status: HealthStatus
+  let pressurePercentage: Double?
+  let status: HealthStatus
 }

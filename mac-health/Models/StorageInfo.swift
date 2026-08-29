@@ -9,8 +9,8 @@ import Foundation
 
 // Represents storage information collected from the Mac's root filesystem.
 struct StorageInfo: Codable {
-    let totalBytes: Int64
-    let availableBytes: Int64
-    let usedPercentage: Double
-    let status: HealthStatus
+  let totalBytes: Int64
+  let availableBytes: Int64
+  let usedPercentage: Double
+  let status: HealthStatus
 }

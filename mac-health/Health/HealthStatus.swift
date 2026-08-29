@@ -8,8 +8,8 @@
 import Foundation
 
 enum HealthStatus: String, Codable {
-    case ok
-    case warning
-    case critical
-    case info
+  case ok
+  case warning
+  case critical
+  case info
 }
