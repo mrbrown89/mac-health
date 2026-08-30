@@ -9,7 +9,7 @@ import ArgumentParser
 import Foundation
 
 @main
-struct MacHealth: ParsableCommand {
+struct MacHealth: AsyncParsableCommand {
 
   static let configuration = CommandConfiguration(
     commandName: "mac-health",
@@ -71,35 +71,11 @@ struct MacHealth: ParsableCommand {
   )
   var users = false
 
-  mutating func run() throws {
-    let deviceService = DeviceService()
-    let deviceInfo = deviceService.getDeviceInfo()
-    let storageService = StorageService()
-    let storageInfo = storageService.getStorageInfo()
-    let memoryService = MemoryService()
-    let memoryInfo = memoryService.getMemoryInfo()
-    let batteryService = BatteryService()
-    let batteryInfo = batteryService.getBatteryInfo()
-    let securityService = SecurityService()
-    let securityInfo = securityService.getSecurityInfo()
-    let softwareUpdateService = SoftwareUpdateService()
-    let softwareUpdateInfo = softwareUpdateService.getSoftwareUpdateInfo()
-    let userService = UserService()
-    let userInfo = userService.getUsers()
-
-    let report = HealthReport(
-      device: deviceInfo,
-      storage: storageInfo,
-      memory: memoryInfo,
-      battery: batteryInfo,
-      security: securityInfo,
-      softwareUpdates: softwareUpdateInfo,
-      users: userInfo
-    )
-
+  mutating func run() async throws {
     let renderer = TerminalRenderer()
 
     if json {
+      let report = await collectFullReport()
       let jsonData = try encodeJSON(report)
 
       if let jsonString = String(
@@ -121,71 +97,100 @@ struct MacHealth: ParsableCommand {
     }
 
     if device {
+      let deviceInfo = DeviceService().getDeviceInfo()
       printDevice(deviceInfo)
 
     } else if storage {
+      let storageInfo = StorageService().getStorageInfo()
       printStorage(
         storageInfo,
         renderer: renderer
       )
 
     } else if memory {
+      let memoryInfo = MemoryService().getMemoryInfo()
       printMemory(
         memoryInfo,
         renderer: renderer
       )
 
     } else if battery {
+      let batteryInfo = BatteryService().getBatteryInfo()
       printBattery(
         batteryInfo,
         renderer: renderer
       )
 
     } else if security {
+      let securityInfo = SecurityService().getSecurityInfo()
       printSecurity(
         securityInfo,
         renderer: renderer
       )
 
     } else if updates {
+      let softwareUpdateInfo = SoftwareUpdateService().getSoftwareUpdateInfo()
       printSoftwareUpdates(
         softwareUpdateInfo,
         renderer: renderer
       )
 
     } else if users {
+      let userInfo = UserService().getUsers()
       printUsers(userInfo)
 
     } else {
-      printDevice(deviceInfo)
+      let report = await collectFullReport()
+
+      printDevice(report.device)
 
       printStorage(
-        storageInfo,
+        report.storage,
         renderer: renderer
       )
 
       printMemory(
-        memoryInfo,
+        report.memory,
         renderer: renderer
       )
 
       printBattery(
-        batteryInfo,
+        report.battery,
         renderer: renderer
       )
 
       printSecurity(
-        securityInfo,
+        report.security,
         renderer: renderer
       )
 
       printSoftwareUpdates(
-        softwareUpdateInfo,
+        report.softwareUpdates,
         renderer: renderer
       )
 
-      printUsers(userInfo)
+      printUsers(report.users)
     }
+  }
+
+  private func collectFullReport() async -> HealthReport {
+    async let deviceInfo = DeviceService().getDeviceInfo()
+    async let storageInfo = StorageService().getStorageInfo()
+    async let memoryInfo = MemoryService().getMemoryInfo()
+    async let batteryInfo = BatteryService().getBatteryInfo()
+    async let securityInfo = SecurityService().getSecurityInfo()
+    async let softwareUpdateInfo = SoftwareUpdateService().getSoftwareUpdateInfo()
+    async let userInfo = UserService().getUsers()
+
+    return await HealthReport(
+      device: deviceInfo,
+      storage: storageInfo,
+      memory: memoryInfo,
+      battery: batteryInfo,
+      security: securityInfo,
+      softwareUpdates: softwareUpdateInfo,
+      users: userInfo
+    )
   }
 
   private func encodeJSON(
