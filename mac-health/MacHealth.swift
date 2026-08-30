@@ -75,8 +75,7 @@ struct MacHealth: AsyncParsableCommand {
     let renderer = TerminalRenderer()
 
     if json {
-      let report = await collectFullReport()
-      let jsonData = try encodeJSON(report)
+      let jsonData = try await collectSelectedJSON()
 
       if let jsonString = String(
         data: jsonData,
@@ -173,6 +172,42 @@ struct MacHealth: AsyncParsableCommand {
     }
   }
 
+  // Collects and encodes only the selected section as JSON.
+  // With no section flag, collects the full health report.
+  private func collectSelectedJSON() async throws -> Data {
+    if device {
+      return try encodeJSON(DeviceService().getDeviceInfo())
+    }
+
+    if storage {
+      return try encodeJSON(StorageService().getStorageInfo())
+    }
+
+    if memory {
+      return try encodeJSON(MemoryService().getMemoryInfo())
+    }
+
+    if battery {
+      return try encodeJSON(BatteryService().getBatteryInfo())
+    }
+
+    if security {
+      return try encodeJSON(SecurityService().getSecurityInfo())
+    }
+
+    if updates {
+      return try encodeJSON(
+        SoftwareUpdateService().getSoftwareUpdateInfo()
+      )
+    }
+
+    if users {
+      return try encodeJSON(UserService().getUsers())
+    }
+
+    return try encodeJSON(await collectFullReport())
+  }
+
   private func collectFullReport() async -> HealthReport {
     async let deviceInfo = DeviceService().getDeviceInfo()
     async let storageInfo = StorageService().getStorageInfo()
@@ -193,8 +228,8 @@ struct MacHealth: AsyncParsableCommand {
     )
   }
 
-  private func encodeJSON(
-    _ report: HealthReport
+  private func encodeJSON<T: Encodable>(
+    _ value: T
   ) throws -> Data {
     let encoder = JSONEncoder()
 
@@ -202,7 +237,7 @@ struct MacHealth: AsyncParsableCommand {
       .prettyPrinted
     ]
 
-    return try encoder.encode(report)
+    return try encoder.encode(value)
   }
 
   private func formatMemory(
